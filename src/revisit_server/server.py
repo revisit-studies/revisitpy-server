@@ -1,25 +1,17 @@
-from http.server import SimpleHTTPRequestHandler, HTTPServer
 import os
+import subprocess
 
 
-class ReactHandler(SimpleHTTPRequestHandler):
-    def do_GET(self):
-        # Serve index.html for all unknown paths
-        static_dir = os.path.join(os.path.dirname(__file__), "static")
-        requested_path = os.path.join(static_dir, self.path.lstrip("/"))
+def serve(port=8080):
+    script_path = os.path.join(os.path.dirname(__file__), "run_server.py")
+    command = ["python", script_path]
+    # Run the server script in the background
+    process = subprocess.Popen(
+        command,  # Pass port as an argument
+        stdout=subprocess.DEVNULL,             # Capture standard output
+        stderr=subprocess.DEVNULL              # Capture standard error
+    )
 
-        # Check if the requested path is a file
-        if not os.path.isfile(requested_path):
-            self.path = "/index.html"
+    print(f"Server is running in the background at http://localhost:{port}")
 
-        return super().do_GET()
-
-
-def serve(port=3000):
-    static_dir = os.path.join(os.path.dirname(__file__), "static")
-    os.chdir(static_dir)  # Change directory to static files
-
-    handler = ReactHandler
-    server = HTTPServer(("localhost", port), handler)
-    print(f"Serving React app at http://localhost:{port}")
-    server.serve_forever()
+    return process
