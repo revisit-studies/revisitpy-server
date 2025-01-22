@@ -1,4 +1,4 @@
-import src.revisit_server.server as rs
+import src.revisitpy_server.server as rs
 import os
 
 if __name__ == "__main__":

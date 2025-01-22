@@ -1,6 +1,4 @@
 # Introduction
 
-Welcome to our study. This is an example of using Vega with the revisit-py library to quickly generate a configuration file.
-
-In this study, you will be shown two scatterplots. You will be asked to select the scatterplot that is more co-related.a
-
+Welcome to our study. This is an example study to show how to embed HTML elements into the study page. 
+In this example, the HTML stimulus communicates with the reVISit study framework to save the clicked bar as the answer, which is also stored in the study provenance.
