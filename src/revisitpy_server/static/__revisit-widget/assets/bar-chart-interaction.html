@@ -13,8 +13,17 @@
   </body>
 
   <script>
+    console.log('RUNNING SCRIPT')
+    console.log('Revisit object:', window.Revisit);
+
+    window.addEventListener('message', (event) => {
+      console.log('Message received from inside our html file:', event.data);
+    });
+
+    window.top.postMessage({ type: 'test', payload: 'Hello from iframe!' }, '*');
     // Get data from the config file
     Revisit.onDataReceive((data) => {
+      console.log('Is this triggered??')
       const barData = data['barData']
       const taskID = 'barChart';
       const loc = 'belowStimulus';
