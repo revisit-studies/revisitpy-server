@@ -43,7 +43,7 @@ jobs:
 
       - name: Copy new study docs to docs and cleanup
         run: |
-          cp -vr study/dist/ src/revisitpy_server/static
+          cp -vr study/dist/* src/revisitpy_server/static/
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
