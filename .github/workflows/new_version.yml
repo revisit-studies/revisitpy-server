@@ -76,6 +76,7 @@ jobs:
 
       - name: Hatch Build
         run: |
+          rm -rf study
           uv run hatch build
 
       - name: Publish distribution to PyPI
