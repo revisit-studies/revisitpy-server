@@ -27,7 +27,7 @@ jobs:
 
       - name: Change VITE_BASE_PATH env variable
         run: |
-          sed -i '' 's/^VITE_BASE_PATH="\/study\/"/VITE_BASE_PATH="\/"/' src/.env
+          sed -i '' 's/^VITE_BASE_PATH="\/study\/"/VITE_BASE_PATH="\/"/' study/.env
 
       - uses: actions/setup-node@v4
         with:
