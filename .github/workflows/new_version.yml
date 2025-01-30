@@ -43,7 +43,8 @@ jobs:
 
       - name: Copy new study docs to docs and cleanup
         run: |
-          cp -r study/dist/ src/revisitpy_server/static/
+          cp -vr study/dist/ src/revisitpy_server/static/
+          git diff
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -89,6 +90,6 @@ jobs:
           git config --global user.email "jackwilburn@tutanota.com"
           git config --global user.name "Jack Wilburn"
           git pull
-          git add src
+          git add pyproject.toml
           git commit -m "Create a new version based on the latest tag"
           git push
