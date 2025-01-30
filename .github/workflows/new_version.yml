@@ -71,11 +71,12 @@ jobs:
 
       - name: Hatch Install
         run: |
+          uv venv
           uv pip install hatch
 
       - name: Hatch Build
         run: |
-          uv hatch build
+          uv run hatch build
 
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
