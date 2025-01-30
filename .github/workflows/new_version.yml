@@ -43,6 +43,8 @@ jobs:
 
       - name: Copy new study docs to docs and cleanup
         run: |
+          git rm -r src/revisitpy_server/static/
+          mkdir src/revisitpy_server/static/
           cp -vr study/dist/* src/revisitpy_server/static/
 
       - name: Install uv
