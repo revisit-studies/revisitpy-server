@@ -4,25 +4,43 @@ on:
   repository_dispatch:
     types: [study_repo_publish]
   workflow_dispatch:
+    inputs:
+      study_tag:
+        description: "Released study tag (vX.Y.Z); supplies assets and package major/minor"
+        required: true
+        type: string
+      release_version:
+        description: "Optional exact X.Y.Z package version in the same major/minor series"
+        required: false
+        type: string
+
+concurrency:
+  group: revisitpy-server-publish
+  cancel-in-progress: false
 
 jobs:
   create_version:
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           token: ${{ secrets.PAT }}
 
-      - uses: actions/checkout@v4
-        with:
-          repository: revisit-studies/study
-          path: study
+      - name: Resolve study release tag
+        env:
+          STUDY_TAG: ${{ github.event.client_payload.release_tag || inputs.study_tag }}
+        run: |
+          [[ "$STUDY_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || { echo "A release_tag / study_tag in vX.Y.Z form is required"; exit 1; }
+          echo "STUDY_TAG=$STUDY_TAG" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v4
         with:
           repository: revisit-studies/study
+          ref: refs/tags/${{ env.STUDY_TAG }}
           path: study
 
       - name: Change VITE_BASE_PATH env variable
@@ -56,20 +74,12 @@ jobs:
           python-version-file: ".python-version"
 
       - name: Update pyproject.toml version
-        run: |
-          # Extract the current version
-          MAJOR_VERSION=$(sed -nE 's/^version = "([0-9]+)\.[0-9]+\.[0-9]+"/\1/p' pyproject.toml)
-          MINOR_VERSION=$(sed -nE 's/^version = "[0-9]+\.([0-9]+)\.[0-9]+"/\1/p' pyproject.toml)
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: python scripts/set_release_version.py --study-tag "$STUDY_TAG" --version "$RELEASE_VERSION"
 
-          # Increment the minor version
-          NEW_MINOR_VERSION=$((MINOR_VERSION + 1))
-          NEW_VERSION="${MAJOR_VERSION}.${NEW_MINOR_VERSION}.0"
-
-          # Update the version in pyproject.toml
-          sed -i -E 's/^version = "[0-9]+\.[0-9]+\.[0-9]+"/version = "'"${NEW_VERSION}"'"/' pyproject.toml
-
-          # Print the new version for debugging
-          echo "New version: ${NEW_VERSION}"
+      - name: Update lockfile version
+        run: uv lock
 
       - name: Hatch Install
         run: |
@@ -81,16 +91,17 @@ jobs:
           rm -rf study
           uv run hatch build
 
-      - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
-
       - name: Commit and push changes
         run: |
           git config --global user.email "jackwilburn@tutanota.com"
           git config --global user.name "Jack Wilburn"
-          git pull
-          git add pyproject.toml src
-          git commit -m "Create a new version based on the latest tag"
-          git push
+          git add pyproject.toml uv.lock src
+          if ! git diff --cached --quiet; then
+            git commit -m "Create a new version based on the latest tag"
+          fi
+          git push origin HEAD:main
+
+      - name: Publish distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
